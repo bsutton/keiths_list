@@ -74,7 +74,9 @@ class _TodoListPageState extends State<TodoListPage> {
 
   void _toggleComplete(int index) {
     setState(() {
-      _todoItems[index].isComplete = !_todoItems[index].isComplete;
+      TodoItem item = _todoItems.removeAt(index);
+      item.isComplete = !item.isComplete;
+      _todoItems.add(item);
       _saveTodoItems();
     });
   }
@@ -118,75 +120,94 @@ class _TodoListPageState extends State<TodoListPage> {
               itemCount: _todoItems.length,
               itemBuilder: (context, index) {
                 final item = _todoItems[index];
-                return ListTile(
-                  title: Text(
-                    item.text,
-                    style: TextStyle(
-                      fontSize: 18.0,
-                      decoration: item.isComplete
-                          ? TextDecoration.lineThrough
-                          : TextDecoration.none,
+                final backgroundColor =
+                    index.isEven ? Colors.white : Colors.purple.shade50;
+
+                return Container(
+                  color: backgroundColor,
+                  child: ListTile(
+                    leading: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Delete Item'),
+                              content:
+                                  Text('Do you want to delete "${item.text}"?'),
+                              actions: [
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                  ),
+                                  onPressed: () {
+                                    _deleteTodoItem(index);
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Yes'),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('No'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
                     ),
-                  ),
-                  leading: Checkbox(
-                    value: item.isComplete,
-                    onChanged: (value) {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Mark Item as Complete'),
-                            content: Text(
-                                'Do you want to mark "${item.text}" as complete?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  _toggleComplete(index);
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text('Yes'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text('No'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Delete Item'),
-                            content:
-                                Text('Do you want to delete "${item.text}"?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  _deleteTodoItem(index);
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text('Yes'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text('No'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
+                    title: Text(
+                      item.text,
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        decoration: item.isComplete
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none,
+                      ),
+                      maxLines: null,
+                    ),
+                    trailing: Checkbox(
+                      value: item.isComplete,
+                      onChanged: (value) {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Mark Item as Complete'),
+                              content: Text(
+                                  'Do you want to mark "${item.text}" as complete?'),
+                              actions: [
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('No'),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                  ),
+                                  onPressed: () {
+                                    _toggleComplete(index);
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Yes'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
                 );
               },
@@ -198,7 +219,7 @@ class _TodoListPageState extends State<TodoListPage> {
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
+                      backgroundColor: Colors.red.shade700,
                       padding: EdgeInsets.zero,
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.zero,
@@ -213,14 +234,20 @@ class _TodoListPageState extends State<TodoListPage> {
                             content: const Text(
                                 'Do you want to delete all items in the list?'),
                             actions: [
-                              TextButton(
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                ),
                                 onPressed: () {
                                   _deleteAllItems();
                                   Navigator.of(context).pop();
                                 },
                                 child: const Text('Yes'),
                               ),
-                              TextButton(
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                ),
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
@@ -231,20 +258,22 @@ class _TodoListPageState extends State<TodoListPage> {
                         },
                       );
                     },
-                    child: const Text('Delete All'),
+                    child: const Text('Delete All',
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ),
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: Colors.green.shade700,
                       padding: EdgeInsets.zero,
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.zero,
                       ),
                     ),
                     onPressed: _startListening,
-                    child: const Text('Add'),
+                    child: const Text('Add',
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],
@@ -255,7 +284,7 @@ class _TodoListPageState extends State<TodoListPage> {
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
+                      backgroundColor: Colors.red.shade700,
                       padding: EdgeInsets.zero,
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.zero,
@@ -265,8 +294,11 @@ class _TodoListPageState extends State<TodoListPage> {
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.stop),
-                        Text('Stop'),
+                        Icon(
+                          Icons.stop,
+                          color: Colors.white,
+                        ),
+                        Text('Stop', style: TextStyle(color: Colors.white)),
                       ],
                     ),
                   ),
@@ -274,7 +306,7 @@ class _TodoListPageState extends State<TodoListPage> {
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Colors.blue.shade700,
                       padding: EdgeInsets.zero,
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.zero,
@@ -285,7 +317,8 @@ class _TodoListPageState extends State<TodoListPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.mic, color: Colors.white),
-                        Text('Speak Now'),
+                        Text('Speak Now',
+                            style: TextStyle(color: Colors.white)),
                       ],
                     ),
                   ),
