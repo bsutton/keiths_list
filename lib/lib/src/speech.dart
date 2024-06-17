@@ -3,7 +3,7 @@ import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:speech_to_text/speech_to_text.dart';
 
-typedef OnConverted = void Function(String text);
+typedef OnConverted = Future<void> Function(String text);
 typedef OnError = void Function(SpeechRecognitionError error);
 
 enum ListenState {
@@ -13,6 +13,9 @@ enum ListenState {
 }
 
 class Speech {
+  late OnConverted onConverted;
+  late OnError onError;
+
   final speechInitialised = CompleterEx<Speech>();
   late stt.SpeechToText _speech;
   ListenState listeningState = ListenState.stopped;
@@ -25,21 +28,46 @@ class Speech {
 
   Future<bool> init(
       {required OnConverted onConverted, required OnError onError}) async {
+    this.onConverted = onConverted;
+    this.onError = onError;
     _speech = stt.SpeechToText();
     final available = await _speech.initialize(
         debugLogging: true,
         finalTimeout: Duration.zero,
-        onStatus: (status) {
+        onStatus: (status) async {
           if (status == 'done') {
-            assert(listeningState == ListenState.stopping,
-                'We should on receive done after we call stop');
-            onConverted(_newItemText);
-            print('done');
-            _newItemText = '';
+            final _state = listeningState;
             listeningState = ListenState.stopped;
+
+            print('Status: done $_state text: $_newItemText');
+            if (_state == ListenState.stopping) {
+              //   listeningState = ListenState.stopped;
+              //   onError(SpeechRecognitionError(
+              //       'Nothing was heard. Try again.', false));
+              // } else {
+              if (_newItemText.isNotEmpty) {
+                await deliver();
+              }
+            }
           }
+          //  else if (status == 'notListening') {
+          //   listeningState = ListenState.stopped;
+          //   await _speech.stop();
+          //   onError(SpeechRecognitionError(
+          //       'Something went wrong. Try again', false));
+          // }
         },
-        onError: (e) => onError(e));
+        onError: (e) {
+          print('Errror: $e');
+          listeningState = ListenState.stopped;
+          if (e.errorMsg == 'error_speech_timeout') {
+            e = SpeechRecognitionError('Nothing was heard. Try again.', false);
+          } else if (e.errorMsg == 'error_no_match') {
+            e = SpeechRecognitionError(
+                "Sorry I didn't understand. Try again.", false);
+          }
+          onError(e);
+        });
 
     if (!available) {
       speechInitialised.completeError(
@@ -51,20 +79,44 @@ class Speech {
   }
 
   Future<void> stop() async {
+    print('stop called');
     // notify the listener to stop. The 'done' status
     // will be sent to the listener.
-    await _speech.stop();
     listeningState = ListenState.stopping;
+    await _speech.stop();
+    // as a last resort we try to deliver any converted text.
+    // The state engine of the speech engine is dodgy.
+    await deliver();
   }
 
-  Future<void> listen() async {
-    await _speech.listen(
-        onResult: (result) {
-          _newItemText = result.recognizedWords;
-          print('Updated Text: $_newItemText');
-        },
-        listenOptions: SpeechListenOptions(cancelOnError: true));
+  bool delivered = false;
+
+  Future<void> start() async {
+    _newItemText = '';
+    delivered = false;
     listeningState = ListenState.listening;
+    await _speech.listen(
+        onResult: (result) async {
+          _newItemText = result.recognizedWords;
+          print(
+              'Words recongnized: state: $listeningState Text: $_newItemText');
+
+          /// The text can come through after the 'done'status is sent.
+          if (listeningState == ListenState.stopped) {
+            if (_newItemText.isNotEmpty) {
+              await deliver();
+            }
+          }
+        },
+        listenOptions: SpeechListenOptions(
+            cancelOnError: true, listenMode: ListenMode.dictation));
+  }
+
+  Future<void> deliver() async {
+    if (_newItemText.isNotEmpty && !delivered) {
+      await onConverted(_newItemText);
+      delivered = true;
+    }
   }
 }
 

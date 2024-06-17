@@ -4,8 +4,8 @@ import 'package:future_builder_ex/future_builder_ex.dart';
 
 import '../animated_todo.dart';
 import 'speech.dart';
+import 'toast.dart';
 import 'todo_item.dart';
-import 'top_toast.dart';
 import 'widgets/pulsing_mic_icon.dart';
 
 class TodoListPage extends StatefulWidget {
@@ -30,11 +30,12 @@ class _TodoListPageState extends State<TodoListPage> {
         await _addTodoItem(text);
         print('Adding Item');
       } else {
-        showToast(context, "Sorry, I didn't hear anything.");
+        showBottomToast(context, "Sorry, I didn't hear anything.");
       }
       setState(() {});
     }, onError: (error) {
-      showToast(context, error.errorMsg);
+      showBottomToast(context, error.errorMsg);
+      setState(() {});
     });
   }
 
@@ -46,7 +47,7 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Start Listening
   Future<void> _startListening() async {
-    await speech.listen();
+    await speech.start();
     setState(() {});
   }
 
@@ -68,6 +69,8 @@ class _TodoListPageState extends State<TodoListPage> {
                     Expanded(child: AnimatedTodoList(key: _listKey)),
                     if (!speech!.isListening)
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        // crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _buildDeleteAllButton(context),
                           _buildAddButton(),
@@ -85,43 +88,49 @@ class _TodoListPageState extends State<TodoListPage> {
       );
 
   /// Delete All button
-  Expanded _buildDeleteAllButton(BuildContext context) => Expanded(
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red.shade700,
-            padding: EdgeInsets.zero,
-            shape: const RoundedRectangleBorder(),
+  Widget _buildDeleteAllButton(BuildContext context) => Expanded(
+        child: SizedBox(
+          height: 60,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+              padding: EdgeInsets.zero,
+              shape: const RoundedRectangleBorder(),
+            ),
+            onPressed: () async {
+              await showDialog<void>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  content: const Text(
+                      'Do you want to delete all items from the list?',
+                      style: TextStyle(fontSize: 22)),
+                  actions: [
+                    _buildNoButton(context),
+                    _buildYesButton(context),
+                  ],
+                ),
+              );
+            },
+            child: const Text('Delete All',
+                style: TextStyle(color: Colors.white, fontSize: 22)),
           ),
-          onPressed: () async {
-            await showDialog<void>(
-              context: context,
-              builder: (context) => AlertDialog(
-                content: const Text(
-                    'Do you want to delete all items from the list?',
-                    style: TextStyle(fontSize: 22)),
-                actions: [
-                  _buildNoButton(context),
-                  _buildYesButton(context),
-                ],
-              ),
-            );
-          },
-          child: const Text('Delete All',
-              style: TextStyle(color: Colors.white, fontSize: 22)),
         ),
       );
 
   /// Add button
-  Expanded _buildAddButton() => Expanded(
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green.shade700,
-            padding: EdgeInsets.zero,
-            shape: const RoundedRectangleBorder(),
+  Widget _buildAddButton() => Expanded(
+        child: SizedBox(
+          height: 60,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green.shade700,
+              padding: EdgeInsets.zero,
+              shape: const RoundedRectangleBorder(),
+            ),
+            onPressed: _startListening,
+            child: const Text('Add',
+                style: TextStyle(color: Colors.white, fontSize: 22)),
           ),
-          onPressed: _startListening,
-          child: const Text('Add',
-              style: TextStyle(color: Colors.white, fontSize: 22)),
         ),
       );
 
@@ -154,7 +163,7 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Build the stop button
   Widget _buildStop() => SizedBox(
-        height: 50,
+        height: 60,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.red.shade700,

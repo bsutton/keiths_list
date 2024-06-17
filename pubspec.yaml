@@ -1,5 +1,5 @@
-name: todo_voice_app
-description: "A new Flutter project."
+name: keiths_list
+description: "A list maker for my Dad. Uses voice recognition to create the list and has a super simple inteface."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -39,6 +39,8 @@ dependencies:
 
 
 dev_dependencies:
+  args: ^2.5.0
+  dcli: ^4.0.1-beta.4
   flutter_test:
     sdk: flutter
 
@@ -48,6 +50,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   lint_hard: ^4.0.0
+  path: ^1.9.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
