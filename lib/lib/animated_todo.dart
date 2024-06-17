@@ -134,8 +134,13 @@ class AnimatedTodoListState extends State<AnimatedTodoList> {
       child: ColoredBox(
         color: backgroundColor,
         child: ListTile(
+          visualDensity: const VisualDensity(horizontal: -4),
           leading: IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
+            icon: const Icon(
+              Icons.delete,
+              color: Colors.red,
+              size: 40,
+            ),
             onPressed: () async {
               await showDialog<void>(
                 context: context,
@@ -145,22 +150,22 @@ class AnimatedTodoListState extends State<AnimatedTodoList> {
                   actions: [
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                        backgroundColor: Colors.red,
                       ),
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: const Text('No'),
+                      child: const Text('No', style: TextStyle(fontSize: 20)),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                        backgroundColor: Colors.green,
                       ),
                       onPressed: () {
                         delete(index);
                         Navigator.of(context).pop();
                       },
-                      child: const Text('Yes'),
+                      child: const Text('Yes', style: TextStyle(fontSize: 20)),
                     ),
                   ],
                 ),
@@ -193,7 +198,7 @@ class AnimatedTodoListState extends State<AnimatedTodoList> {
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: const Text('No'),
+                      child: const Text('No', style: TextStyle(fontSize: 20)),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -203,7 +208,7 @@ class AnimatedTodoListState extends State<AnimatedTodoList> {
                         _toggleComplete(index);
                         Navigator.of(context).pop();
                       },
-                      child: const Text('Yes'),
+                      child: const Text('Yes', style: TextStyle(fontSize: 20)),
                     ),
                   ],
                 ),

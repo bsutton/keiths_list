@@ -146,7 +146,8 @@ class _TodoListPageState extends State<TodoListPage> {
             Navigator.of(context).pop();
           }
         },
-        child: const Text('Yes', style: TextStyle(color: Colors.white)),
+        child: const Text('Yes',
+            style: TextStyle(color: Colors.white, fontSize: 20)),
       );
 
   /// no button
@@ -158,7 +159,8 @@ class _TodoListPageState extends State<TodoListPage> {
         onPressed: () {
           Navigator.of(context).pop();
         },
-        child: const Text('No', style: TextStyle(color: Colors.white)),
+        child: const Text('No',
+            style: TextStyle(color: Colors.white, fontSize: 20)),
       );
 
   /// Build the stop button
@@ -178,7 +180,7 @@ class _TodoListPageState extends State<TodoListPage> {
                 Icons.stop,
                 color: Colors.white,
               ),
-              Text('Stop', style: TextStyle(color: Colors.white)),
+              Text('Stop', style: TextStyle(color: Colors.white, fontSize: 22)),
             ],
           ),
         ),
