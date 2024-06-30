@@ -188,7 +188,9 @@ class AnimatedTodoListState extends State<AnimatedTodoList> {
                 context: context,
                 builder: (context) => AlertDialog(
                   content: Text(
-                      'Do you want to mark "${item.text}" as complete?',
+                      item.isComplete
+                          ? 'Do you want to mark "${item.text}" as NOT complete?'
+                          : 'Do you want to mark "${item.text}" as complete?',
                       style: const TextStyle(fontSize: 22)),
                   actions: [
                     ElevatedButton(
